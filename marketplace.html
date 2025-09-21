@@ -7,7 +7,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap');
         :root {
-            --primary-color: #c5a687;
+            --primary-color: #c5a687; /* The warm, earthy, artistic tone */
             --dark-color: #3a3a3a;
             --light-bg: #fdfaf6;
             --white-bg: #ffffff;
@@ -131,17 +131,23 @@
     <script type="module">
         // --- IMPORTANT: PASTE YOUR FIREBASE CONFIG OBJECT HERE ---
         const firebaseConfig = {
-          // Paste your config object here
+          apiKey: "AIzaSyD2pIlTugP5ioDx9ZU-BXP1BlTbdzwL4OU",
+          authDomain: "sonic-terminal-472807-t9.firebaseapp.com",
+          projectId: "sonic-terminal-472807-t9",
+          storageBucket: "sonic-terminal-472807-t9.appspot.com",
+          messagingSenderId: "983709128072",
+          appId: "1:983709128072:web:5439cdf280c0f3bf27563d",
+          measurementId: "G-HQZ8Y8GDE2"
         };
 
         // --- FIREBASE SETUP ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         // --- SCRIPT LOGIC ---
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
             const productGrid = document.getElementById('productGrid');
             const stateGrid = document.getElementById('stateGrid');
             const gridTitle = document.getElementById('product-grid-title');
@@ -149,7 +155,15 @@
             const productsSectionHeader = document.getElementById('products-section-header');
 
             let allProducts = [];
-            const artisans = JSON.parse(localStorage.getItem('artisans')) || {}; // Still using this for bios
+            
+            // This is a temporary list for display purposes. In a real app, this would also be in Firestore.
+            const artisans = {
+                artisan1: { name: 'Meera Sharma', state: 'Rajasthan' }, artisan2: { name: 'Ravi Patel', state: 'Gujarat' },
+                artisan3: { name: 'Anjali Priya', state: 'Odisha' }, artisan4: { name: 'Vikram Singh', state: 'Uttar Pradesh' },
+                artisan5: { name: 'Lakshmi Kumar', state: 'Kerala' }, artisan6: { name: 'Harpreet Singh', state: 'Punjab' },
+                artisan7: { name: 'Sunita Das', state: 'West Bengal' }, artisan8: { name: 'Rajesh Naik', state: 'Karnataka' },
+                artisan9: { name: 'Farida Khan', state: 'Kashmir' }, artisan10: { name: 'Tenzing Lepcha', state: 'Sikkim' }
+            };
             
             const stateImageMap = {
                 'Rajasthan': 'images/rajasthan.jpg', 'Gujarat': 'images/gujarat.jpg', 'Odisha': 'images/odisha.jpg',
@@ -171,8 +185,6 @@
                     stateCard.innerHTML = `<span>${state}</span>`;
                     stateGrid.appendChild(stateCard);
                 });
-            } else {
-                stateGrid.innerHTML = '<p>No states to display yet.</p>';
             }
 
             function renderProducts(filterState = null) {
@@ -187,7 +199,6 @@
                 }
 
                 productsToRender.forEach(product => {
-                    const originalIndex = allProducts.findIndex(p => p.id === product.id);
                     const card = document.createElement('div');
                     card.className = 'product-card';
                     card.innerHTML = `
@@ -206,13 +217,12 @@
                 });
             }
 
-            // --- REAL-TIME LISTENER FOR PRODUCTS ---
             onSnapshot(collection(db, "products"), (querySnapshot) => {
                 allProducts = [];
                 querySnapshot.forEach((doc) => {
                     allProducts.push({ id: doc.id, ...doc.data() });
                 });
-                renderProducts(); // Re-render all products whenever data changes
+                renderProducts();
             });
 
             stateGrid.addEventListener('click', (event) => {
@@ -237,7 +247,7 @@
                         checkoutItems.push(productToBuy);
                         localStorage.setItem('checkoutItems', JSON.stringify(checkoutItems));
                         alert(`"${productToBuy.product_title}" has been added to your cart.`);
-                        window.location.href = 'checkout.html';
+                        window.location.href = './checkout.html';
                     }
                 }
             });

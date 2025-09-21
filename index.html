@@ -3,158 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Select Artisan Profile | KalaKari AI</title>
+    <title>KalaKari AI - Empowering Artisans</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Playfair+Display:wght@700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+        :root {
+            --animation-duration: 2.5s;
+            --background-color: #111111;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #fdfaf6;
+            background-color: var(--background-color);
+            overflow: hidden;
+        }
+
+        .transition-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 40px 20px;
+            color: white;
         }
-        .login-container { text-align: center; width: 100%; }
-        .login-container h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
-            margin-bottom: 40px;
+
+        .background-image {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            opacity: 0;
+            animation: fadeInOut calc(var(--animation-duration) * 2) ease-in-out forwards;
         }
-        .artisan-profiles {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
+        
+        .bg-1 { background-image: url('images/bg1.jpg'); animation-delay: 0s; }
+        .bg-2 { background-image: url('images/bg2.jpg'); animation-delay: var(--animation-duration); }
+        .bg-3 { background-image: url('images/bg3.jpg'); animation-delay: calc(var(--animation-duration) * 2); }
+        
+        .content {
+            position: relative; z-index: 3; text-align: center; opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInContent 1.5s ease-out forwards;
+            animation-delay: calc(var(--animation-duration) * 2.5);
         }
-        .profile-card {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.07);
-            padding: 30px;
-            cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
+
+        .content h1 { font-size: 4rem; font-weight: 700; letter-spacing: 2px; margin-bottom: 20px; }
+        .content p { font-size: 1.25rem; margin-bottom: 40px; }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: scale(1); }
+            25% { opacity: 1; }
+            75% { opacity: 1; }
+            100% { opacity: 0; transform: scale(1.05); }
+        }
+
+        .bg-3 {
+            animation: finalFadeIn var(--animation-duration) ease-in-out forwards;
+            animation-delay: calc(var(--animation-duration) * 2);
+        }
+        
+        @keyframes finalFadeIn {
+            0% { opacity: 0; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.05); }
+        }
+        
+        @keyframes fadeInContent { to { opacity: 1; transform: translateY(0); } }
+
+        .button-group {
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            justify-content: center;
+            gap: 20px;
         }
-        .profile-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-        }
-        .profile-card img {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-        .profile-card h3 { margin: 15px 0 5px 0; font-size: 1.1rem; }
-        .profile-card p { color: #888; margin: 0; }
-        .home-btn {
-            position: fixed;
-            top: 40px;
-            left: 40px;
-            background: #fff;
-            color: #333;
-            border: 1px solid #ddd;
-            padding: 10px 25px;
-            border-radius: 50px;
+        .cta-button {
+            display: inline-block;
+            padding: 15px 35px;
+            color: white;
             text-decoration: none;
             font-weight: 600;
-            transition: all 0.3s;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-radius: 50px;
+            transition: background-color 0.3s, transform 0.3s;
         }
-        .home-btn:hover { background: #333; color: #fff; }
+        .cta-button.artisan-btn { background-color: #007bff; }
+        .cta-button.artisan-btn:hover { background-color: #0056b3; transform: translateY(-3px); }
+        .cta-button.marketplace-btn { background-color: #c5a687; }
+        .cta-button.marketplace-btn:hover { background-color: #b38e6d; transform: translateY(-3px); }
     </style>
 </head>
 <body>
-    <a href="./landing.html" class="home-btn">← Return Home</a>
-    <div class="login-container">
-        <h1>Select Your Artisan Profile</h1>
-        <div class="artisan-profiles">
-            <div class="profile-card" id="artisan1">
-                <img src="https://placehold.co/100x100/c5a687/FFFFFF?text=MS" alt="Meera Sharma">
-                <h3>Meera Sharma</h3>
-                <p>Rajasthan</p>
-            </div>
-            <div class="profile-card" id="artisan2">
-                <img src="https://placehold.co/100x100/007BFF/FFFFFF?text=RP" alt="Ravi Patel">
-                <h3>Ravi Patel</h3>
-                <p>Gujarat</p>
-            </div>
-            <div class="profile-card" id="artisan3">
-                <img src="https://placehold.co/100x100/28a745/FFFFFF?text=AP" alt="Anjali Priya">
-                <h3>Anjali Priya</h3>
-                <p>Odisha</p>
-            </div>
-            <div class="profile-card" id="artisan4">
-                <img src="https://placehold.co/100x100/dc3545/FFFFFF?text=VS" alt="Vikram Singh">
-                <h3>Vikram Singh</h3>
-                <p>Uttar Pradesh</p>
-            </div>
-            <div class="profile-card" id="artisan5">
-                <img src="https://placehold.co/100x100/ffc107/FFFFFF?text=LK" alt="Lakshmi Kumar">
-                <h3>Lakshmi Kumar</h3>
-                <p>Kerala</p>
-            </div>
-            <div class="profile-card" id="artisan6">
-                <img src="https://placehold.co/100x100/17a2b8/FFFFFF?text=HS" alt="Harpreet Singh">
-                <h3>Harpreet Singh</h3>
-                <p>Punjab</p>
-            </div>
-            <div class="profile-card" id="artisan7">
-                <img src="https://placehold.co/100x100/6610f2/FFFFFF?text=SD" alt="Sunita Das">
-                <h3>Sunita Das</h3>
-                <p>West Bengal</p>
-            </div>
-            <div class="profile-card" id="artisan8">
-                <img src="https://placehold.co/100x100/e83e8c/FFFFFF?text=RN" alt="Rajesh Naik">
-                <h3>Rajesh Naik</h3>
-                <p>Karnataka</p>
-            </div>
-             <div class="profile-card" id="artisan9">
-                <img src="https://placehold.co/100x100/fd7e14/FFFFFF?text=FK" alt="Farida Khan">
-                <h3>Farida Khan</h3>
-                <p>Kashmir</p>
-            </div>
-             <div class="profile-card" id="artisan10">
-                <img src="https://placehold.co/100x100/20c997/FFFFFF?text=TL" alt="Tenzing Lepcha">
-                <h3>Tenzing Lepcha</h3>
-                <p>Sikkim</p>
+
+    <div class="transition-container">
+        
+        <div class="background-image bg-1"></div>
+        <div class="background-image bg-2"></div>
+        <div class="background-image bg-3"></div>
+
+        <div class="content">
+            <h1>KalaKari AI</h1>
+            <p>Your Digital Storyteller & Marketplace Companion.</p>
+            <div class="button-group">
+                <a href="./login.html" class="cta-button artisan-btn">Artisan Hub</a>
+                <a href="./marketplace.html" class="cta-button marketplace-btn">Shop Now</a>
             </div>
         </div>
+
     </div>
 
-    <script>
-        const artisans = {
-            artisan1: { name: 'Meera Sharma', state: 'Rajasthan', bio: 'Meera has been practicing traditional block printing for over 25 years...' },
-            artisan2: { name: 'Ravi Patel', state: 'Gujarat', bio: 'Ravi is a master weaver from Gujarat...' },
-            artisan3: { name: 'Anjali Priya', state: 'Odisha', bio: 'Anjali is a Pattachitra painter from a small village in Odisha...' },
-            artisan4: { name: 'Vikram Singh', state: 'Uttar Pradesh', bio: 'Based in Saharanpur, Vikram is a third-generation woodcarver...' },
-            artisan5: { name: 'Lakshmi Kumar', state: 'Kerala', bio: 'Lakshmi weaves magic with coir...' },
-            artisan6: { name: 'Harpreet Singh', state: 'Punjab', bio: 'Harpreet is a master of Phulkari embroidery...' },
-            artisan7: { name: 'Sunita Das', state: 'West Bengal', bio: 'Sunita is a Kantha embroidery artist...' },
-            artisan8: { name: 'Rajesh Naik', state: 'Karnataka', bio: 'Rajesh is a skilled artisan from Channapatna...' },
-            artisan9: { name: 'Farida Khan', state: 'Kashmir', bio: 'Farida is an expert in Kashmiri Pashmina weaving...' },
-            artisan10: { name: 'Tenzing Lepcha', state: 'Sikkim', bio: 'Tenzing practices the ancient art of Thangka painting...' }
-        };
-        localStorage.setItem('artisans', JSON.stringify(artisans));
-
-        function setArtisanAndRedirect(id) {
-            localStorage.setItem('currentArtisan', id);
-            window.location.href = './dashboard.html';
-        }
-
-        // A cleaner way to add event listeners to all cards
-        for (let i = 1; i <= 10; i++) {
-            const artisanCard = document.getElementById(`artisan${i}`);
-            if (artisanCard) {
-                artisanCard.addEventListener('click', () => setArtisanAndRedirect(`artisan${i}`));
-            }
-        }
-    </script>
 </body>
 </html>
 

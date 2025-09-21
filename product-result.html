@@ -23,23 +23,17 @@
         .product-details::-webkit-scrollbar { width: 8px; }
         .product-details::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
         .product-details::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
-        
         .section { margin-bottom: 20px; }
         .section-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 10px; }
-        
         h1#productTitle { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 700; line-height: 1.2; margin-bottom: 15px; }
         p#productDescription { font-size: 0.95rem; line-height: 1.7; opacity: 0.9; }
-        
         .provenance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9rem; }
         .provenance-item strong { color: #D4AF37; }
-        
         p#artisansNote { font-style: italic; opacity: 0.8; }
-
         #suggestions-grid { display: flex; flex-direction: column; gap: 10px; }
         .suggestion-card { background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 10px 15px; }
         .suggestion-card h4 { margin: 0 0 5px 0; color: #D4AF37; font-size: 0.9rem; }
         .suggestion-card p { font-size: 0.85rem; margin: 0; line-height: 1.5; opacity: 0.8; }
-        
         .publish-controls { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.2); }
         .details-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px; }
         .input-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; opacity: 0.9; }
@@ -47,7 +41,6 @@
         select option { color: #333; }
         .btn-publish { display: block; width: 100%; padding: 15px; text-align: center; text-decoration: none; font-weight: 600; font-size: 1.1rem; border-radius: 10px; transition: all 0.3s; border: none; cursor: pointer; background-color: var(--success-color); color: white; }
         .btn-publish:hover { background-color: #218838; transform: translateY(-2px); }
-        
         @keyframes fadeInBg { from { opacity: 0; } to { opacity: 1; } }
         @keyframes fadeInCard { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -58,17 +51,9 @@
         <div class="product-card">
             <div class="product-image-preview" id="product-image-preview"></div>
             <div class="product-details">
-                <div id="loading-state">
-                    <h1>Generating your Product Identity...</h1>
-                    <p>Please wait while our AI analyzes your craft.</p>
-                </div>
-                
+                <div id="loading-state"><h1>Generating your Product Identity...</h1></div>
                 <div id="loaded-content" style="display: none;">
-                    <div class="section">
-                        <h1 id="productTitle"></h1>
-                        <p id="productDescription"></p>
-                    </div>
-
+                    <div class="section"><h1 id="productTitle"></h1><p id="productDescription"></p></div>
                     <div class="section">
                         <h3 class="section-title">Provenance Report</h3>
                         <div class="provenance-grid">
@@ -77,18 +62,9 @@
                             <div class="provenance-item"><strong>Materials:</strong> <span id="materials"></span></div>
                         </div>
                     </div>
-                    
-                    <div class="section">
-                        <h3 class="section-title">Artisan's Note</h3>
-                        <p id="artisansNote"></p>
-                    </div>
-
-                    <div class="section">
-                        <h3 class="section-title">AI Marketing Suggestions</h3>
-                        <div id="suggestions-grid"></div>
-                    </div>
+                    <div class="section"><h3 class="section-title">Artisan's Note</h3><p id="artisansNote"></p></div>
+                    <div class="section"><h3 class="section-title">AI Marketing Suggestions</h3><div id="suggestions-grid"></div></div>
                 </div>
-
                 <div class="publish-controls">
                     <div class="details-grid">
                         <div class="input-group"><label for="state">State</label><select id="state"></select></div>
@@ -100,8 +76,9 @@
             </div>
         </div>
     </div>
+
     <script type="module">
-        // --- YOUR UNIQUE FIREBASE CONFIG IS PASTED HERE ---
+        // --- IMPORTANT: PASTE YOUR FIREBASE CONFIG OBJECT HERE ---
         const firebaseConfig = {
           apiKey: "AIzaSyD2pIlTugP5ioDx9ZU-BXP1BlTbdzwL4OU",
           authDomain: "sonic-terminal-472807-t9.firebaseapp.com",
@@ -119,7 +96,7 @@
         const db = getFirestore(app);
 
         // --- SCRIPT LOGIC ---
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             const productDataJSON = localStorage.getItem('latestProduct');
             const artisans = JSON.parse(localStorage.getItem('artisans')) || {};
             const currentArtisanId = localStorage.getItem('currentArtisan');
@@ -133,14 +110,13 @@
                 document.getElementById('materials').textContent = productData.provenance.materials;
                 document.getElementById('region').textContent = productData.provenance.region;
                 document.getElementById('artisansNote').textContent = `"${productData.artisans_note}"`;
-                
                 document.getElementById('background-image').style.backgroundImage = `url(${productData.imageSrc})`;
                 document.getElementById('product-image-preview').style.backgroundImage = `url(${productData.imageSrc})`;
 
                 document.getElementById('loading-state').style.display = 'none';
                 document.getElementById('loaded-content').style.display = 'block';
 
-                getMarketingSuggestions(productData.description);
+                await getMarketingSuggestions(productData.description);
                 
                 const stateSelect = document.getElementById('state');
                 const allStates = [...new Set(Object.values(artisans).map(artisan => artisan.state))];
@@ -158,9 +134,7 @@
 
                 document.getElementById('publishBtn').addEventListener('click', async () => {
                     const price = document.getElementById('productPrice').value;
-                    if (!price || parseFloat(price) <= 0) {
-                        alert('Please enter a valid price.'); return;
-                    }
+                    if (!price || parseFloat(price) <= 0) { alert('Please enter a valid price.'); return; }
                     
                     const finalProduct = {
                         ...productData,
@@ -171,6 +145,7 @@
                     };
                     
                     try {
+                        // --- THIS IS THE FIX: SAVING TO FIREBASE ---
                         await addDoc(collection(db, "products"), finalProduct);
                         alert('Product published successfully!');
                         window.location.href = './dashboard.html';
@@ -179,10 +154,8 @@
                         alert("Failed to publish product.");
                     }
                 });
-
             } else {
                 document.getElementById('productTitle').textContent = "No Product Found";
-                document.getElementById('productDescription').textContent = "Please return to the dashboard and generate a product.";
             }
         });
 
@@ -190,7 +163,6 @@
             const grid = document.getElementById('suggestions-grid');
             grid.innerHTML = '<p style="font-size:0.9rem; opacity:0.7;">Generating marketing ideas...</p>';
             try {
-                // --- THIS IS THE UPDATED LINE WITH YOUR LIVE URL ---
                 const response = await fetch('https://kalakari-ai-backend-983709128072.asia-south1.run.app/generate-suggestions', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
