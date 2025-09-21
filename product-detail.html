@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details | KalaKari AI</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap');
+        :root {
+            --success-color: #28a745; --font-color: #ffffff;
+            --shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Poppins', sans-serif; color: var(--font-color); height: 100vh; overflow: hidden; }
+        .background-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; filter: blur(15px) brightness(0.7); transform: scale(1.1); animation: fadeInBg 1.5s ease-out forwards; }
+        .content-wrapper { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; padding: 40px; }
+        .product-card { display: flex; max-width: 1000px; width: 100%; height: 650px; background: rgba(0, 0, 0, 0.2); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.125); box-shadow: var(--shadow); opacity: 0; transform: translateY(20px); animation: fadeInCard 1s ease-out 0.5s forwards; }
+        .product-image-preview { flex: 1; background-size: cover; background-position: center; border-radius: 20px 0 0 20px; }
+        .product-details {
+            flex: 1.2; padding: 25px 40px; display: flex;
+            flex-direction: column; overflow-y: auto;
+        }
+        .product-details::-webkit-scrollbar { width: 8px; }
+        .product-details::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        .product-details::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
+        
+        .section { margin-bottom: 20px; }
+        .section-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 10px; }
+        
+        h1#productTitle { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 700; line-height: 1.2; margin-bottom: 15px; }
+        p#productDescription { font-size: 0.95rem; line-height: 1.7; opacity: 0.9; }
+        
+        .provenance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9rem; }
+        .provenance-item strong { color: #D4AF37; }
+        
+        p#artisansNote { font-style: italic; opacity: 0.8; }
+        p#artisanBio { font-size: 0.95rem; line-height: 1.7; opacity: 0.9; }
+
+        .product-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.2); display: flex; justify-content: space-between; align-items: center; }
+        .product-price { font-size: 2rem; font-weight: 700; color: var(--font-color); }
+        .btn-buy {
+            background-color: var(--success-color); color: white; padding: 15px 30px;
+            text-decoration: none; font-weight: 600; font-size: 1.1rem;
+            border-radius: 10px; transition: all 0.3s; border: none; cursor: pointer;
+        }
+        .btn-buy:hover { background-color: #218838; transform: translateY(-2px); }
+
+        .back-btn {
+            position: fixed; top: 40px; left: 40px; z-index: 1001;
+            color: white; text-decoration: none; font-weight: 600;
+            padding: 12px 20px; background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.125); border-radius: 50px;
+            transition: background-color 0.3s;
+        }
+        .back-btn:hover { background-color: rgba(255, 255, 255, 0.2); }
+        
+        @keyframes fadeInBg { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeInCard { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <a href="./marketplace.html" class="back-btn">← Back to Marketplace</a>
+
+    <div class="background-container" id="background-image"></div>
+    <div class="content-wrapper">
+        <div class="product-card">
+            <div class="product-image-preview" id="product-image-preview"></div>
+            <div class="product-details">
+                <div id="loading-state">
+                    <h1>Loading Product Details...</h1>
+                </div>
+                
+                <div id="loaded-content" style="display: none;">
+                    <div class="section">
+                        <h1 id="productTitle"></h1>
+                        <p id="productDescription"></p>
+                    </div>
+                    <div class="section">
+                        <h3 class="section-title">Provenance Report</h3>
+                        <div class="provenance-grid">
+                            <div class="provenance-item"><strong>Craft:</strong> <span id="craftType"></span></div>
+                            <div class="provenance-item"><strong>Region:</strong> <span id="region"></span></div>
+                            <div class="provenance-item"><strong>Materials:</strong> <span id="materials"></span></div>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <h3 class="section-title">Artisan's Note</h3>
+                        <p id="artisansNote"></p>
+                    </div>
+                    <div class="section">
+                        <h3 class="section-title">Meet the Artisan</h3>
+                        <p id="artisanBio"></p>
+                    </div>
+                </div>
+
+                <div class="product-footer">
+                    <span class="product-price" id="productPrice"></span>
+                    <button class="btn-buy" id="buyNowBtn">Buy Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // --- IMPORTANT: PASTE YOUR FIREBASE CONFIG OBJECT HERE ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyD2pIlTugP5ioDx9ZU-BXP1BlTbdzwL4OU",
+          authDomain: "sonic-terminal-472807-t9.firebaseapp.com",
+          projectId: "sonic-terminal-472807-t9",
+          storageBucket: "sonic-terminal-472807-t9.appspot.com",
+          messagingSenderId: "983709128072",
+          appId: "1:983709128072:web:5439cdf280c0f3bf27563d",
+          measurementId: "G-HQZ8Y8GDE2"
+        };
+
+        // --- FIREBASE SETUP ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- SCRIPT LOGIC ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
+            const artisans = JSON.parse(localStorage.getItem('artisans')) || {};
+
+            if (!productId) {
+                document.getElementById('productTitle').textContent = "Product Not Found";
+                return;
+            }
+
+            try {
+                const docRef = doc(db, "products", productId);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const product = docSnap.data();
+                    const artisan = artisans[product.artisanId];
+
+                    // Populate UI
+                    document.getElementById('productTitle').textContent = product.product_title;
+                    document.getElementById('productDescription').textContent = product.description;
+                    document.getElementById('craftType').textContent = product.provenance.craft_type;
+                    document.getElementById('materials').textContent = product.provenance.materials;
+                    document.getElementById('region').textContent = product.provenance.region;
+                    document.getElementById('artisansNote').textContent = `"${product.artisans_note}"`;
+                    document.getElementById('productPrice').textContent = `₹${product.price}`;
+                    
+                    if (artisan) {
+                        document.getElementById('artisanBio').textContent = artisan.bio;
+                    }
+
+                    document.getElementById('background-image').style.backgroundImage = `url(${product.imageSrc})`;
+                    document.getElementById('product-image-preview').style.backgroundImage = `url(${product.imageSrc})`;
+
+                    document.getElementById('loading-state').style.display = 'none';
+                    document.getElementById('loaded-content').style.display = 'block';
+
+                    document.getElementById('buyNowBtn').addEventListener('click', () => {
+                        let checkoutItems = JSON.parse(localStorage.getItem('checkoutItems')) || [];
+                        checkoutItems.push(product);
+                        localStorage.setItem('checkoutItems', JSON.stringify(checkoutItems));
+                        alert(`"${product.product_title}" has been added to your cart.`);
+                        window.location.href = './checkout.html';
+                    });
+                } else {
+                    document.getElementById('productTitle').textContent = "Product Not Found";
+                    document.getElementById('productDescription').textContent = "This product may have been removed by the artisan.";
+                }
+            } catch (error) {
+                console.error("Error fetching product details:", error);
+                document.getElementById('productTitle').textContent = "Error Loading Product";
+            }
+        });
+    </script>
+</body>
+</html>
+

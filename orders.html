@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Orders | KalaKari AI</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap');
+        :root {
+            --primary-color: #007bff; --success-color: #28a745; --warning-color: #ffc107;
+            --light-bg: #f8f9fa; --white-bg: #ffffff; --font-color: #343a40;
+            --border-color: #e9ecef; --shadow: 0 8px 25px rgba(0,0,0,0.08);
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--light-bg); color: var(--font-color); margin: 0; padding: 40px; }
+        .container { max-width: 900px; margin: auto; }
+        .page-header { text-align: center; margin-bottom: 40px; }
+        .page-header h1 { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 700; position: relative; display: inline-block; }
+        .page-header h1::after {
+            content: ''; position: absolute; bottom: -10px; left: 5%; width: 90%;
+            height: 3px; background-image: url('data:image/svg+xml;utf8,<svg width="100" height="5" viewBox="0 0 100 5" xmlns="http://www.w3.org/2000/svg"><path d="M0,3 C25,0,75,5,100,2" stroke="%23007bff" fill="none" stroke-width="2"/></svg>');
+            background-repeat: repeat-x;
+        }
+        
+        .orders-container { display: flex; flex-direction: column; gap: 20px; }
+        .order-card { background: var(--white-bg); border-radius: 12px; box-shadow: var(--shadow); transition: box-shadow 0.3s; }
+        .order-card:hover { box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
+        .order-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; cursor: pointer; border-bottom: 1px solid transparent; }
+        .order-header.open { border-bottom-color: var(--border-color); }
+        .order-info h3 { margin: 0; font-size: 1.1rem; }
+        .order-info p { margin: 5px 0 0 0; color: #6c757d; }
+        
+        .order-status-selector { padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; border: 1px solid var(--border-color); font-family: 'Poppins', sans-serif; }
+        
+        .order-details {
+            max-height: 0; overflow: hidden; transition: max-height 0.5s ease-out, padding 0.5s ease-out; padding: 0 30px;
+        }
+        .order-details.open { max-height: 500px; padding: 20px 30px; }
+        
+        .order-item { display: flex; align-items: center; margin-bottom: 15px; }
+        .order-item-image { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; margin-right: 15px; }
+        .order-item-title { flex-grow: 1; font-weight: 600; }
+        .order-item-price { font-weight: 500; }
+        #noOrdersMessage { text-align: center; color: #6c757d; padding: 40px; background: var(--white-bg); border-radius: 12px; box-shadow: var(--shadow); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <h1>Your Customer Orders</h1>
+        </header>
+
+        <div class="orders-container" id="ordersContainer">
+            <p id="loading-message">Loading your orders...</p>
+        </div>
+        <p id="noOrdersMessage" style="display:none;">You haven't received any orders yet.</p>
+    </div>
+
+    <script type="module">
+        // --- IMPORTANT: PASTE YOUR FIREBASE CONFIG OBJECT HERE ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyD2pIlTugP5ioDx9ZU-BXP1BlTbdzwL4OU",
+          authDomain: "sonic-terminal-472807-t9.firebaseapp.com",
+          projectId: "sonic-terminal-472807-t9",
+          storageBucket: "sonic-terminal-472807-t9.appspot.com",
+          messagingSenderId: "983709128072",
+          appId: "1:983709128072:web:5439cdf280c0f3bf27563d",
+          measurementId: "G-HQZ8Y8GDE2"
+        };
+
+        // --- FIREBASE SETUP ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- SCRIPT LOGIC ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('ordersContainer');
+            const noOrdersMessage = document.getElementById('noOrdersMessage');
+            const loadingMessage = document.getElementById('loading-message');
+            const currentArtisanId = localStorage.getItem('currentArtisan');
+
+            if (!currentArtisanId) {
+                // If artisan isn't "logged in", don't show anything.
+                loadingMessage.textContent = 'Please log in to see your orders.';
+                noOrdersMessage.style.display = 'none';
+                return;
+            }
+
+            // Query for orders where the current artisan is one of the sellers
+            const ordersQuery = query(collection(db, "orders"), where("artisanIds", "array-contains", currentArtisanId));
+
+            onSnapshot(ordersQuery, (querySnapshot) => {
+                loadingMessage.style.display = 'none';
+                container.innerHTML = ''; // Clear previous orders
+
+                if (querySnapshot.empty) {
+                    noOrdersMessage.style.display = 'block';
+                } else {
+                    noOrdersMessage.style.display = 'none';
+                    querySnapshot.docs.sort((a, b) => b.data().orderId.localeCompare(a.data().orderId)).forEach(doc => {
+                        const order = { id: doc.id, ...doc.data() };
+                        const orderCard = document.createElement('div');
+                        orderCard.className = 'order-card';
+                        
+                        let itemsHtml = '';
+                        // Filter to show only the items for the current artisan in this order
+                        const relevantItems = order.items.filter(item => item.artisanId === currentArtisanId);
+
+                        relevantItems.forEach(item => {
+                            itemsHtml += `
+                                <div class="order-item">
+                                    <img src="${item.imageSrc}" alt="${item.product_title}" class="order-item-image">
+                                    <span class="order-item-title">${item.product_title}</span>
+                                    <span class="order-item-price">₹${item.price}</span>
+                                </div>
+                            `;
+                        });
+
+                        orderCard.innerHTML = `
+                            <div class="order-header">
+                                <div class="order-info">
+                                    <h3>Order #${order.orderId}</h3>
+                                    <p>Placed on ${order.date}</p>
+                                </div>
+                                <select class="order-status-selector" data-orderid="${order.id}">
+                                    <option value="Processing" ${order.status === 'Processing' ? 'selected' : ''}>Processing</option>
+                                    <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                                    <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                                </select>
+                            </div>
+                            <div class="order-details">
+                                <h4>Items for you in this order:</h4>
+                                ${itemsHtml}
+                            </div>
+                        `;
+                        container.appendChild(orderCard);
+                    });
+                }
+                
+                // Add accordion functionality after rendering
+                document.querySelectorAll('.order-header').forEach(header => {
+                    header.addEventListener('click', (event) => {
+                        if (event.target.tagName !== 'SELECT') { // Don't toggle if clicking the dropdown
+                            const details = header.nextElementSibling;
+                            header.classList.toggle('open');
+                            details.classList.toggle('open');
+                        }
+                    });
+                });
+            });
+
+            // --- ORDER STATUS MANAGEMENT ---
+            container.addEventListener('change', async (event) => {
+                if (event.target && event.target.classList.contains('order-status-selector')) {
+                    const orderId = event.target.dataset.orderid;
+                    const newStatus = event.target.value;
+                    const orderRef = doc(db, "orders", orderId);
+                    try {
+                        await updateDoc(orderRef, { status: newStatus });
+                        // Optionally add a small success confirmation
+                    } catch (e) {
+                        console.error("Error updating order status: ", e);
+                        alert("Failed to update status.");
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KalaKari Marketplace</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap');
+        :root {
+            --primary-color: #c5a687;
+            --dark-color: #3a3a3a;
+            --light-bg: #fdfaf6;
+            --white-bg: #ffffff;
+            --font-color: #3a3a3a;
+            --shadow: 0 10px 40px rgba(0,0,0,0.08);
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--light-bg); color: var(--font-color); margin: 0; }
+        .container { max-width: 1200px; margin: auto; padding: 40px 20px; }
+        
+        .hero-section {
+            height: 50vh;
+            background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('images/bg2.jpg');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            margin-bottom: 60px;
+        }
+        .hero-section h1 { font-family: 'Playfair Display', serif; font-size: 3.5rem; margin: 0; }
+        .hero-section p { font-size: 1.2rem; margin-top: 10px; max-width: 600px; }
+
+        .browse-section {
+            background: var(--white-bg);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: var(--shadow);
+            margin-bottom: 50px;
+        }
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .state-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+        }
+        .state-card {
+            height: 280px;
+            border-radius: 16px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-end;
+            padding: 20px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+        .state-card:hover { transform: scale(1.03); }
+        .state-card::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 50%);
+        }
+        .state-card span { 
+            z-index: 1; 
+            color: white; 
+            font-weight: 600; 
+            font-size: 1.8rem; 
+            font-family: 'Playfair Display', serif;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .marketplace-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        #product-grid-title { font-family: 'Playfair Display', serif; font-size: 2.2rem; }
+        .nav-buttons { display: flex; gap: 15px; }
+        .nav-btn { background: none; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 8px 16px; border-radius: 50px; font-weight: 600; cursor: pointer; transition: all 0.3s; text-decoration: none; }
+        .nav-btn:hover { background: var(--primary-color); color: white; }
+
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
+        .product-card {
+            background: var(--white-bg); border-radius: 16px; box-shadow: var(--shadow);
+            overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;
+            display: flex; flex-direction: column;
+        }
+        .product-card:hover { transform: translateY(-10px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        .product-image { height: 250px; width: 100%; background-size: cover; background-position: center; }
+        .product-info { padding: 25px; flex-grow: 1; display: flex; flex-direction: column; }
+        .product-info h3 { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin: 0 0 10px 0; }
+        .product-info p { font-size: 0.95rem; color: #777; line-height: 1.6; flex-grow: 1; margin-bottom: 15px; }
+        .details-btn { font-size: 0.9rem; font-weight: 600; color: var(--primary-color); text-decoration: none; display: inline-block; }
+        .product-footer { padding: 0 25px 25px 25px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f0f0f0; padding-top: 20px; margin-top: auto;}
+        .product-price { font-size: 1.3rem; font-weight: 600; color: var(--dark-color); }
+        .buy-btn { background: var(--dark-color); color: white; padding: 10px 20px; border-radius: 50px; text-decoration: none; font-weight: 600; transition: background-color 0.3s; cursor: pointer; border: none; }
+        .buy-btn:hover { background-color: var(--primary-color); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="hero-section">
+            <h1>Art That Tells a Story</h1>
+            <p>Discover authentic, handcrafted treasures from every corner of India.</p>
+        </header>
+
+        <section class="browse-section">
+            <h2 class="section-title">Browse by State</h2>
+            <div class="state-grid" id="stateGrid"></div>
+        </section>
+
+        <header class="marketplace-header" id="products-section-header">
+            <h2 id="product-grid-title">Featured Products</h2>
+            <div class="nav-buttons">
+                <button id="clear-filter-btn" class="nav-btn" style="display: none;">Show All Products</button>
+                <a href="landing.html" class="nav-btn">Return Home</a>
+            </div>
+        </header>
+        <main class="product-grid" id="productGrid"></main>
+    </div>
+
+    <script type="module">
+        // --- IMPORTANT: PASTE YOUR FIREBASE CONFIG OBJECT HERE ---
+        const firebaseConfig = {
+          // Paste your config object here
+        };
+
+        // --- FIREBASE SETUP ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- SCRIPT LOGIC ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            const productGrid = document.getElementById('productGrid');
+            const stateGrid = document.getElementById('stateGrid');
+            const gridTitle = document.getElementById('product-grid-title');
+            const clearFilterBtn = document.getElementById('clear-filter-btn');
+            const productsSectionHeader = document.getElementById('products-section-header');
+
+            let allProducts = [];
+            const artisans = JSON.parse(localStorage.getItem('artisans')) || {}; // Still using this for bios
+            
+            const stateImageMap = {
+                'Rajasthan': 'images/rajasthan.jpg', 'Gujarat': 'images/gujarat.jpg', 'Odisha': 'images/odisha.jpg',
+                'Uttar Pradesh': 'images/uttar-pradesh.jpg', 'Kerala': 'images/kerala.jpg', 'Punjab': 'images/punjab.jpg',
+                'West Bengal': 'images/west-bengal.jpg', 'Karnataka': 'images/karnataka.jpg', 'Kashmir': 'images/kashmir.jpg',
+                'Sikkim': 'images/sikkim.jpg',
+            };
+
+            const allArtisanStates = [...new Set(Object.values(artisans).map(a => a.state))];
+            allArtisanStates.sort();
+            
+            if (allArtisanStates.length > 0) {
+                allArtisanStates.forEach(state => {
+                    const stateCard = document.createElement('div');
+                    stateCard.className = 'state-card';
+                    stateCard.dataset.state = state;
+                    const imageUrl = stateImageMap[state] || `https://placehold.co/400x600/eee/333?text=${state}`;
+                    stateCard.style.backgroundImage = `url(${imageUrl})`;
+                    stateCard.innerHTML = `<span>${state}</span>`;
+                    stateGrid.appendChild(stateCard);
+                });
+            } else {
+                stateGrid.innerHTML = '<p>No states to display yet.</p>';
+            }
+
+            function renderProducts(filterState = null) {
+                productGrid.innerHTML = '';
+                const productsToRender = filterState ? allProducts.filter(p => p.state === filterState) : allProducts;
+                gridTitle.textContent = filterState ? `Art from ${filterState}` : 'Featured Products';
+                clearFilterBtn.style.display = filterState ? 'block' : 'none';
+
+                if (productsToRender.length === 0) {
+                    productGrid.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: #888;">No products found for this selection.</p>`;
+                    return;
+                }
+
+                productsToRender.forEach(product => {
+                    const originalIndex = allProducts.findIndex(p => p.id === product.id);
+                    const card = document.createElement('div');
+                    card.className = 'product-card';
+                    card.innerHTML = `
+                        <div class="product-image" style="background-image: url('${product.imageSrc}')"></div>
+                        <div class="product-info">
+                            <h3>${product.product_title}</h3>
+                            <p>${product.description.substring(0, 100)}...</p>
+                            <a href="product-detail.html?id=${product.id}" class="details-btn">View Details →</a>
+                        </div>
+                        <div class="product-footer">
+                            <span class="product-price">₹${product.price}</span>
+                            <button class="buy-btn" data-id="${product.id}">Buy Now</button>
+                        </div>
+                    `;
+                    productGrid.appendChild(card);
+                });
+            }
+
+            // --- REAL-TIME LISTENER FOR PRODUCTS ---
+            onSnapshot(collection(db, "products"), (querySnapshot) => {
+                allProducts = [];
+                querySnapshot.forEach((doc) => {
+                    allProducts.push({ id: doc.id, ...doc.data() });
+                });
+                renderProducts(); // Re-render all products whenever data changes
+            });
+
+            stateGrid.addEventListener('click', (event) => {
+                const stateCard = event.target.closest('.state-card');
+                if (stateCard) {
+                    const state = stateCard.dataset.state;
+                    renderProducts(state);
+                    productsSectionHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+
+            clearFilterBtn.addEventListener('click', () => {
+                renderProducts();
+            });
+
+            productGrid.addEventListener('click', (event) => {
+                if (event.target && event.target.classList.contains('buy-btn')) {
+                    const productId = event.target.dataset.id;
+                    const productToBuy = allProducts.find(p => p.id === productId);
+                    if (productToBuy) {
+                        let checkoutItems = JSON.parse(localStorage.getItem('checkoutItems')) || [];
+                        checkoutItems.push(productToBuy);
+                        localStorage.setItem('checkoutItems', JSON.stringify(checkoutItems));
+                        alert(`"${productToBuy.product_title}" has been added to your cart.`);
+                        window.location.href = 'checkout.html';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | KalaKari AI</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap');
+        :root {
+            --primary-color: #007bff; --success-color: #28a745; --danger-color: #dc3545;
+            --light-bg: #f8f9fa; --white-bg: #ffffff; --font-color: #343a40;
+            --border-color: #e9ecef; --shadow: 0 8px 25px rgba(0,0,0,0.08);
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--light-bg); color: var(--font-color); margin: 0; padding: 40px; }
+        .container { max-width: 1000px; margin: auto; }
+        .page-header { text-align: center; margin-bottom: 40px; }
+        .page-header h1 { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 700; position: relative; display: inline-block; }
+        .page-header h1::after {
+            content: ''; position: absolute; bottom: -10px; left: 5%; width: 90%;
+            height: 3px; background-image: url('data:image/svg+xml;utf8,<svg width="100" height="5" viewBox="0 0 100 5" xmlns="http://www.w3.org/2000/svg"><path d="M0,3 C25,0,75,5,100,2" stroke="%23007bff" fill="none" stroke-width="2"/></svg>');
+            background-repeat: repeat-x;
+        }
+        .checkout-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; align-items: start; }
+        .cart-items, .order-summary { background: var(--white-bg); border-radius: 12px; box-shadow: var(--shadow); padding: 30px; }
+        .cart-items h2, .order-summary h2 { margin-top: 0; font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
+        .cart-item { display: flex; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--border-color); }
+        .cart-item:last-child { border-bottom: none; }
+        .cart-item-image { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; margin-right: 20px; }
+        .cart-item-details { flex-grow: 1; }
+        .cart-item-details h4 { margin: 0 0 5px 0; font-weight: 600; }
+        .cart-item-price { font-weight: 600; font-size: 1.1rem; }
+        .cart-item-remove { background: none; border: none; font-size: 1.5rem; color: #adb5bd; cursor: pointer; transition: color 0.3s; margin-left: 20px; }
+        .cart-item-remove:hover { color: var(--danger-color); }
+        #emptyCartMessage { text-align: center; color: #6c757d; padding: 40px 0; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1.1rem; }
+        .summary-row.total { font-weight: 700; font-size: 1.3rem; border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 15px; }
+        .place-order-btn { display: block; width: 100%; background-color: var(--success-color); color: white; padding: 18px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background-color 0.3s, transform 0.3s; margin-top: 20px; }
+        .place-order-btn:hover { background-color: #218838; transform: translateY(-3px); }
+        .place-order-btn:disabled { background-color: #adb5bd; cursor: not-allowed; transform: none; }
+        .continue-shopping-btn { display: block; width: 100%; background-color: transparent; color: var(--primary-color); padding: 18px; border: 1px solid var(--primary-color); border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background-color 0.3s, color 0.3s; margin-top: 15px; text-decoration: none; text-align: center; }
+        .continue-shopping-btn:hover { background-color: var(--primary-color); color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <h1>Your Cart</h1>
+        </header>
+        <div class="checkout-layout">
+            <div class="cart-items">
+                <h2>Items</h2>
+                <div id="cartItemsContainer"></div>
+                <p id="emptyCartMessage" style="display:none;">Your cart is empty. <a href="marketplace.html">Start Shopping</a>.</p>
+            </div>
+            <div class="order-summary">
+                <h2>Summary</h2>
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotalPrice">₹0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Shipping</span>
+                    <span id="shippingPrice">₹0.00</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span id="totalPrice">₹0.00</span>
+                </div>
+                <button class="place-order-btn" id="placeOrderBtn">Place Order</button>
+                <a href="marketplace.html" class="continue-shopping-btn">Continue Shopping</a>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // --- IMPORTANT: PASTE YOUR FIREBASE CONFIG OBJECT HERE ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyD2pIlTugP5ioDx9ZU-BXP1BlTbdzwL4OU",
+          authDomain: "sonic-terminal-472807-t9.firebaseapp.com",
+          projectId: "sonic-terminal-472807-t9",
+          storageBucket: "sonic-terminal-472807-t9.appspot.com",
+          messagingSenderId: "983709128072",
+          appId: "1:983709128072:web:5439cdf280c0f3bf27563d",
+          measurementId: "G-HQZ8Y8GDE2"
+        };
+
+        // --- FIREBASE SETUP ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- SCRIPT LOGIC ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('cartItemsContainer');
+            const emptyCartMessage = document.getElementById('emptyCartMessage');
+            const placeOrderBtn = document.getElementById('placeOrderBtn');
+            let checkoutItems = JSON.parse(localStorage.getItem('checkoutItems')) || [];
+
+            function renderCart() {
+                container.innerHTML = '';
+                if (checkoutItems.length === 0) {
+                    emptyCartMessage.style.display = 'block';
+                    placeOrderBtn.disabled = true;
+                    updateSummary(0);
+                    return;
+                }
+                
+                emptyCartMessage.style.display = 'none';
+                placeOrderBtn.disabled = false;
+                
+                let subtotal = 0;
+                checkoutItems.forEach((item, index) => {
+                    const price = parseFloat(item.price);
+                    subtotal += price;
+                    container.innerHTML += `
+                        <div class="cart-item">
+                            <img src="${item.imageSrc}" alt="${item.product_title}" class="cart-item-image">
+                            <div class="cart-item-details">
+                                <h4>${item.product_title}</h4>
+                            </div>
+                            <span class="cart-item-price">₹${price.toFixed(2)}</span>
+                            <button class="cart-item-remove" data-index="${index}">&times;</button>
+                        </div>
+                    `;
+                });
+                
+                updateSummary(subtotal);
+                addRemoveListeners();
+            }
+
+            function updateSummary(subtotal) {
+                const shipping = subtotal > 0 ? 100.00 : 0;
+                document.getElementById('subtotalPrice').textContent = `₹${subtotal.toFixed(2)}`;
+                document.getElementById('shippingPrice').textContent = `₹${shipping.toFixed(2)}`;
+                document.getElementById('totalPrice').textContent = `₹${(subtotal + shipping).toFixed(2)}`;
+            }
+
+            function addRemoveListeners() {
+                document.querySelectorAll('.cart-item-remove').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const itemIndex = parseInt(event.target.dataset.index);
+                        checkoutItems.splice(itemIndex, 1);
+                        localStorage.setItem('checkoutItems', JSON.stringify(checkoutItems));
+                        renderCart();
+                    });
+                });
+            }
+
+            placeOrderBtn.addEventListener('click', async () => {
+                if (checkoutItems.length === 0) return;
+                
+                // Get a unique list of all artisans involved in this order
+                const artisanIdsInOrder = [...new Set(checkoutItems.map(item => item.artisanId))];
+
+                const newOrder = {
+                    orderId: 'KA-' + Date.now(),
+                    date: new Date().toLocaleDateString(),
+                    items: checkoutItems,
+                    status: 'Processing',
+                    artisanIds: artisanIdsInOrder // This is the crucial field for the artisan's query
+                };
+
+                try {
+                    // Save the new order to the "orders" collection in Firestore
+                    await addDoc(collection(db, "orders"), newOrder);
+                    
+                    localStorage.removeItem('checkoutItems');
+                    
+                    alert('Thank you for your order! It has been sent to the artisan. You will now be returned to the marketplace.');
+                    window.location.href = './marketplace.html';
+                } catch (e) {
+                    console.error("Error placing order: ", e);
+                    alert("There was a problem placing your order. Please try again.");
+                }
+            });
+            
+            renderCart();
+        });
+    </script>
+</body>
+</html>
+

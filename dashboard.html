@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KalaKari AI Dashboard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+        :root {
+            --primary-color: #007BFF; --dark-bg: #1A1A1A; --light-bg: #F7F8FC;
+            --white-bg: #ffffff; --font-color: #333; --border-color: #EFEFEF;
+            --shadow: 0 10px 25px rgba(0,0,0,0.05); --success-color: #28a745;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--light-bg); color: var(--font-color); }
+        .dashboard-container { display: flex; }
+        .sidebar { width: 260px; background-color: var(--dark-bg); color: #fff; height: 100vh; padding: 25px; position: fixed; display: flex; flex-direction: column; justify-content: space-between; }
+        .sidebar-header { text-align: center; margin-bottom: 50px; font-size: 1.8rem; font-weight: 700; letter-spacing: 1px; color: var(--white-bg); }
+        .sidebar-header span { color: var(--primary-color); }
+        .sidebar-nav ul { list-style: none; padding: 0; }
+        .sidebar-nav li a { display: flex; align-items: center; gap: 15px; padding: 15px 20px; text-decoration: none; color: #A9A9A9; font-weight: 500; border-radius: 10px; margin-bottom: 10px; transition: background-color 0.3s, color 0.3s; }
+        .sidebar-nav li a .icon { font-size: 1.2rem; }
+        .sidebar-nav li a.active, .sidebar-nav li a:hover { background-color: var(--primary-color); color: var(--white-bg); }
+        .logout-btn { background-color: rgba(220, 53, 69, 0.1); color: #DC3545; }
+        .logout-btn:hover { background-color: #DC3545; color: white; }
+        .main-content { margin-left: 260px; width: calc(100% - 260px); padding: 40px; }
+        .main-header { margin-bottom: 40px; }
+        .main-header h1 { font-weight: 700; font-size: 2.5rem; margin: 0; }
+        .main-header p { color: #888; font-size: 1.1rem; margin-top: 5px; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+        .card { background: var(--white-bg); border-radius: 16px; box-shadow: var(--shadow); padding: 30px; transition: transform 0.3s, box-shadow 0.3s; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
+        .full-width-card { grid-column: 1 / -1; }
+        .section-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 20px; }
+        .action-card { text-align: center; cursor: pointer; }
+        .action-card .icon { font-size: 3rem; color: var(--primary-color); line-height: 1; }
+        .action-card h3 { margin: 15px 0 5px 0; font-weight: 600; font-size: 1.2rem; }
+        .action-card p { color: #999; font-size: 0.9rem; margin: 0; }
+        .product-catalog table { width: 100%; border-collapse: collapse; }
+        .product-catalog th, .product-catalog td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .product-catalog th { font-weight: 600; font-size: 0.9rem; color: #888; text-transform: uppercase; }
+        .product-catalog tbody tr:last-child td { border-bottom: none; }
+        .product-catalog td .product-image { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; }
+        .delete-btn { background: none; border: none; font-size: 1.2rem; color: #ccc; cursor: pointer; transition: color 0.3s; }
+        .delete-btn:hover { color: #DC3545; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+        .modal-content { background-color: var(--white-bg); margin: auto; padding: 40px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: var(--shadow); position: relative; }
+        .close-button { color: #aaa; position: absolute; right: 20px; top: 15px; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .modal-content h2 { margin-top: 0; }
+        .modal-content .upload-label { display: block; background-color: var(--primary-color); color: white; padding: 12px; border-radius: 8px; cursor: pointer; text-align: center; font-weight: 600; }
+        .modal-content #fileName { margin-top: 15px; color: #6c757d; font-style: italic; text-align: center; display: block; }
+        .modal-content #generateBtn { width: 100%; background-color: var(--success-color); color: white; padding: 15px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 20px; font-weight: 600; }
+        #loader { text-align: center; margin-top: 20px; display: none; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div>
+                <div class="sidebar-header">KalaKari<span>.AI</span></div>
+                <nav class="sidebar-nav">
+                    <ul>
+                        <li><a href="#" class="active"><span class="icon">🏠</span> Dashboard</a></li>
+                        <li><a href="./marketplace.html" target="_blank"><span class="icon">🛍️</span> Marketplace</a></li>
+                        <li><a href="./orders.html"><span class="icon">📦</span> Orders</a></li>
+                        <li><a href="#"><span class="icon">⚙️</span> Settings</a></li>
+                    </ul>
+                </nav>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#" id="logoutBtn" class="logout-btn"><span class="icon">🚪</span> Logout</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="main-header">
+                <h1 id="welcome-heading">Dashboard</h1>
+                <p>Welcome back, here's your creative workspace.</p>
+            </header>
+            <div class="dashboard-grid">
+                <div class="card action-card" id="addProductAction">
+                    <div class="icon">✨</div>
+                    <h3>Generate Product</h3>
+                    <p>Let AI create your listing in seconds.</p>
+                </div>
+                <div class="card action-card" onclick="window.location.href='./orders.html'">
+                    <div class="icon">📦</div>
+                    <h3>View Orders</h3>
+                    <p>Manage and track customer orders.</p>
+                </div>
+                <div class="card action-card" onclick="window.location.href='./marketplace.html'">
+                    <div class="icon">🛍️</div>
+                    <h3>View Marketplace</h3>
+                    <p>See your public-facing store.</p>
+                </div>
+                <div class="card product-catalog full-width-card">
+                    <h2 class="section-title">Your Published Products</h2>
+                    <table>
+                        <thead><tr><th>Product</th><th>Title</th><th>Price</th><th>Action</th></tr></thead>
+                        <tbody id="product-catalog-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="aiGeneratorModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Generate New Product Listing</h2>
+            <p>Upload a clear photo of your craft to begin.</p>
+            <input type="file" id="imageUpload" accept="image/*" style="display:none;">
+            <label for="imageUpload" class="upload-label">📸 Select Image</label>
+            <p id="fileName">No file selected</p>
+            <button id="generateBtn" disabled>✨ Weave Your Story</button>
+            <div id="loader">
+                <div class="spinner"></div>
+                <p>Our AI is working its magic...</p>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        // --- YOUR UNIQUE FIREBASE CONFIG IS PASTED HERE ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyD2pIlTugP5ioDx9ZU-BXP1BlTbdzwL4OU",
+          authDomain: "sonic-terminal-472807-t9.firebaseapp.com",
+          projectId: "sonic-terminal-472807-t9",
+          storageBucket: "sonic-terminal-472807-t9.appspot.com",
+          messagingSenderId: "983709128072",
+          appId: "1:983709128072:web:5439cdf280c0f3bf27563d",
+          measurementId: "G-HQZ8Y8GDE2"
+        };
+
+        // --- FIREBASE SETUP ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, where, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- SCRIPT LOGIC ---
+        const artisans = JSON.parse(localStorage.getItem('artisans'));
+        const currentArtisanId = localStorage.getItem('currentArtisan');
+        
+        if (!currentArtisanId || !artisans || !artisans[currentArtisanId]) {
+            window.location.href = './index.html';
+        } else {
+            const currentArtisan = artisans[currentArtisanId];
+            document.getElementById('welcome-heading').textContent = `Welcome, ${currentArtisan.name}!`;
+        }
+        
+        const catalogBody = document.getElementById('product-catalog-body');
+        
+        const productsQuery = query(collection(db, "products"), where("artisanId", "==", currentArtisanId));
+        onSnapshot(productsQuery, (querySnapshot) => {
+            catalogBody.innerHTML = '';
+            if (querySnapshot.empty) {
+                catalogBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#999; padding: 20px;">You have not published any products yet.</td></tr>';
+            } else {
+                querySnapshot.forEach((doc) => {
+                    const product = doc.data();
+                    const newRow = document.createElement('tr');
+                    newRow.innerHTML = `
+                        <td><img src="${product.imageSrc}" alt="${product.product_title}" class="product-image"></td>
+                        <td>${product.product_title}</td>
+                        <td>₹${product.price}</td>
+                        <td><button class="delete-btn" data-id="${doc.id}">🗑️</button></td>
+                    `;
+                    catalogBody.appendChild(newRow);
+                });
+            }
+        });
+
+        catalogBody.addEventListener('click', async (event) => {
+            if (event.target && event.target.classList.contains('delete-btn')) {
+                const docId = event.target.dataset.id;
+                if (confirm('Are you sure you want to delete this product?')) {
+                    try {
+                        await deleteDoc(doc(db, "products", docId));
+                    } catch (e) {
+                        console.error("Error removing document: ", e);
+                        alert("Failed to delete product.");
+                    }
+                }
+            }
+        });
+
+        const modal = document.getElementById('aiGeneratorModal');
+        const addProductAction = document.getElementById('addProductAction');
+        const closeButton = document.querySelector('.close-button');
+        addProductAction.onclick = () => { modal.style.display = 'flex'; }
+        closeButton.onclick = () => { modal.style.display = 'none'; }
+        window.onclick = (event) => { if (event.target == modal) { modal.style.display = 'none'; } }
+        
+        const imageUpload = document.getElementById('imageUpload');
+        const fileName = document.getElementById('fileName');
+        const generateBtn = document.getElementById('generateBtn');
+        const loader = document.getElementById('loader');
+        let selectedFile;
+        
+        imageUpload.addEventListener('change', (event) => {
+            selectedFile = event.target.files[0];
+            if (selectedFile) { fileName.textContent = selectedFile.name; generateBtn.disabled = false; }
+        });
+
+        generateBtn.addEventListener('click', () => {
+            if (!selectedFile) { alert('Please select an image first!'); return; }
+            loader.style.display = 'block';
+            generateBtn.disabled = true;
+            const formData = new FormData();
+            formData.append('image', selectedFile);
+
+            const reader = new FileReader();
+            reader.readAsDataURL(selectedFile);
+            reader.onload = async () => {
+                const imageBase64 = reader.result;
+                try {
+                    // --- THIS IS THE UPDATED LINE WITH YOUR LIVE URL ---
+                    const response = await fetch('https://kalakari-ai-backend-983709128072.asia-south1.run.app/generate', {
+                        method: 'POST',
+                        body: formData,
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Network response was not ok');
+                    }
+                    const data = await response.json();
+                    const productData = {
+                        product_title: data.product_title,
+                        description: data.description,
+                        provenance: data.provenance,
+                        artisans_note: data.artisans_note,
+                        imageSrc: imageBase64
+                    };
+                    localStorage.setItem('latestProduct', JSON.stringify(productData));
+                    window.location.href = './product-result.html';
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred during generation: ' + error.message);
+                    loader.style.display = 'none';
+                    generateBtn.disabled = false;
+                }
+            };
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', (event) => {
+            event.preventDefault();
+            localStorage.removeItem('currentArtisan');
+            localStorage.removeItem('latestProduct');
+            alert('You have been logged out.');
+            window.location.href = './index.html';
+        });
+    </script>
+</body>
+</html>
+
